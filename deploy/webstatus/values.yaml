@@ -1,0 +1,179 @@
+replicaCount: 1
+clusterName: eshop-aks
+pathBase: /webstatus
+
+image:
+  repository: eshop/webstatus
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  annotations: {
+
+  }
+  tls: []
+
+resources: {}
+
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# env defines the environment variables that will be declared in the pod
+env:
+  urls:
+  # configmap declares variables which value is taken from the config map defined in template configmap.yaml (name is name of var and key the key in configmap).
+  configmap:
+    - name: ApplicationInsights__InstrumentationKey
+      key: all__InstrumentationKey
+    - name: HealthChecks-UI__HealthChecks__0__Name
+      key: name__mvc__hc
+    - name: HealthChecks-UI__HealthChecks__0__Uri
+      key: internalurls__mvc__hc
+    - name: HealthChecks-UI__HealthChecks__1__Name
+      key: name__spa__hc
+    - name: HealthChecks-UI__HealthChecks__1__Uri
+      key: internalurls__spa__hc
+    - name: HealthChecks-UI__HealthChecks__2__Name
+      key: name__apigwwsagg__hc
+    - name: HealthChecks-UI__HealthChecks__2__Uri
+      key: internalurls__apigwwsagg__hc
+    - name: HealthChecks-UI__HealthChecks__3__Name
+      key: name__apigwmsagg__hc
+    - name: HealthChecks-UI__HealthChecks__3__Uri
+      key: internalurls__apigwmsagg__hc
+    - name: HealthChecks-UI__HealthChecks__4__Name
+      key: name__ordering__hc
+    - name: HealthChecks-UI__HealthChecks__4__Uri
+      key: internalurls__ordering__hc
+    - name: HealthChecks-UI__HealthChecks__5__Name
+      key: name__basket__hc
+    - name: HealthChecks-UI__HealthChecks__5__Uri
+      key: internalurls__basket__hc
+    - name: HealthChecks-UI__HealthChecks__6__Name
+      key: name__catalog__hc
+    - name: HealthChecks-UI__HealthChecks__6__Uri
+      key: internalurls__catalog__hc
+    - name: HealthChecks-UI__HealthChecks__7__Name
+      key: name__identity__hc
+    - name: HealthChecks-UI__HealthChecks__7__Uri
+      key: internalurls__identity__hc
+    - name: HealthChecks-UI__HealthChecks__8__Name
+      key: name__payment__hc
+    - name: HealthChecks-UI__HealthChecks__8__Uri
+      key: internalurls__payment__hc
+    - name: HealthChecks-UI__HealthChecks__9__Name
+      key: name__signalrhub__hc
+    - name: HealthChecks-UI__HealthChecks__9__Uri
+      key: internalurls__signalrhub__hc
+    - name: HealthChecks-UI__HealthChecks__10__Name
+      key: name__orderingbackground__hc
+    - name: HealthChecks-UI__HealthChecks__10__Uri
+      key: internalurls__orderingbackground__hc
+
+      # values define environment variables with a fixed value (no configmap involved) (name is name of var, and value is its value)
+  values:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Development
+    - name: OrchestratorType
+      value: 'K8S'
+inf:
+  mesh:
+    enabled: false          # True to enable Linkerd (set by deploy-all.ps1)
+  tls:
+    enabled: false          # True to enable TLS (set by deploy-all.ps1)
+    issuer: ""              # cert-manager issuer to use for retrieving certs (set by deploy-all.ps1)
+  sql:                      # inf.sql defines the sql server databases & logins
+#    host:  my-sql-server   # Uncomment to specify a custom sql-server to be used. By default "sql-data-<appname>" will be used  
+    common:
+      user: sa              # SQL user
+      pwd:         # SQL pwd
+      pid: Developer
+    catalog:                # inf.sql.catalog: settings for the catalog-api sql (user, pwd, db)
+      db: CatalogDb         # Catalog API SQL db name
+    ordering:               # inf.sql.ordering: settings for the ordering-api sql (user, pwd, db)
+      db: OrderingDb        # Ordering API SQL db name
+    identity:
+      db: IdentityDb        # Ordering API SQL db name
+    webhooks:
+      db: WebhooksDb        # Webhooks DB
+  mongo:
+    host: #my-nosql-data    # Uncomment to use specify custom mongo host. By default nosql-data is used
+  redis:                    # inf.redis defines the redis' connection strings
+    basket:     
+      svc: basket-data      # Name of k8s svc for basket redis     
+      constr: basket-data   # Connection string to Redis used by Basket API
+    keystore:
+      svc: keystore-data    # Name of k8s svc for keystore-data redis
+      constr: keystore-data # Connection string to Redis used as a Keystore (by Identity API)
+  eventbus:
+    svc: rabbitmq           # Name of k8s svc for rabbitmq
+    constr: rabbitmq        # Event bus connection string
+    useAzure: false         # true if use Azure Service Bus. False if RabbitMQ
+  appinsights:
+      key: ""               # App insights to use
+  k8s:                      # inf.k8s defines Kubernetes cluster global config
+    dns:  ""                # k8s external  DNS. This value or ip value MUST BE PROVIDED
+    local: false            # True when deploying on "local K8s" provided by Docker Desktop.
+  misc:                     # inf.misc contains miscellaneous configuration related to infrastructure
+    useAzureStorage: false  # If catalog api uses azure storage or not
+  registry:                # Uncomment "registry" to specify registry secret
+    secretName: acr          # secretName is the name of the secret inside k8s   
+    server: abouhamed.azurecr.io           # Registry login server
+#    login:                 # User login
+#    pwd:                   # User pwd
+
+# This helm values file defines app-based settings
+# Charts use those values, so this file **MUST** be included in all chart releases
+
+app:                                                    # app global settings
+  name: "my-eshop"                                      # Override for custom app name
+  ingress:                                              # ingress related settings
+    entries:
+      basket: basket-api                                # ingress entry for basket api
+      catalog: catalog-api                              # ingress entry for catalog api
+      ordering: ordering-api                            # ingress entry for ordering api
+      identity: identity                                # ingress entry for identity api
+      mvc: webmvc                                       # ingress entry for web mvc
+      spa: ""                                           # ingress entry for web spa
+      status: webstatus                                 # ingress entry for web status
+      webshoppingapigw: webshoppingapigw                # ingress entry for web shopping Agw
+      mobileshoppingapigw: mobileshoppingapigw          # ingress entry for mobile shopping Agw
+      webshoppingagg: webshoppingagg                    # ingress entry for web shopping aggregator
+      mobileshoppingagg: mobileshoppingagg              # ingress entry for mobile shopping aggregator
+      payment: payment-api                              # ingress entry for payment api
+      webhooks: webhooks-api                            # ingress entry for webhooks api
+      webhooksweb: webhooks-web                         # ingress entry for webhooks web demo client
+  svc:
+      basket: basket-api                                # service name for basket api
+      catalog: catalog-api                              # service name for catalog api
+      ordering: ordering-api                            # service name for ordering api
+      orderingbackgroundtasks: ordering-backgroundtasks # service name for orderingbackgroundtasks
+      orderingsignalrhub: ordering-signalrhub           # service name for orderingsignalrhub
+      identity: identity-api                            # service name for identity api
+      mvc: webmvc                                       # service name for web mvc
+      spa: webspa                                       # service name for web spa
+      status: webstatus                                 # service name for web status
+      webshoppingapigw: webshoppingapigw                # service name for web shopping Agw
+      mobileshoppingapigw: mobileshoppingapigw          # service name for mobile shopping Agw
+      webshoppingagg: webshoppingagg                    # service name for web shopping aggregator
+      mobileshoppingagg: mobileshoppingagg              # service name for mobile shopping aggregator
+      payment: payment-api                              # service name for payment api
+      webhooks: webhooks-api                            # service name for webhooks api
+      webhooksweb: webhooks-client                      # service name for webhooks web
+
+# This file contains common ingress annotations when using AKS with Http Application Routing
+
+ingress:
+  annotations:
+    kubernetes.io/ingress.class: addon-http-application-routing
+    ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
