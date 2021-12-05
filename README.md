@@ -4,7 +4,8 @@
 
 This project is a complete jenkins continious integration pipeline for thirteen microservice of the  [eShopOnContainers](https://github.com/dotnet-architecture/eShopOnContainers).
 eShopOnContainers is a well documented and structured .NET project. 
-the purpose of this repo is to devide the code into separate microservices which is tested, built and deployed separately using Jenkins CI.
+the purpose of this repo is to devide the code into separate microservices which is tested, built and deployed separately using Jenkins.
+
 ideally you will have one repo/microservice and each repo will have devlop, pre-prod and prod branches.
 to be able to demonstrate the concept we will use this single repo and will configure one microservice/branch.
 
