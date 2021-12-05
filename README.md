@@ -15,21 +15,26 @@ pre-requisites:
 * SonarQube server
 * azure container registry
 * AKS
+
 I used my repo [provision-azure-infra-terraform-jenkins](https://github.com/ahmedabuhamid/provision-azure-infra-terraform-jenkins) to quickly provision and the needed infra.
 
 How to use:
 ---
-clone the repo, checkout to each branch to see how each microservice was built. each branch will trigger a Jenkins job that will produce two artifacts:
+clone the repo and checkout to each branch to see how each microservice was built. each branch will trigger a Jenkins job that will produce two artifacts:
+
 1- docker image of the microservice.
+
 2- packaged Helm chart (to be used in a release pipeline to deploy this particular microservice).
+
 you can use the below command to manually deploy/test the chart in your AKS cluster:
 ```
 helm install $RELEASE_NAME oci://$ACR_NAME.azurecr.io/$CHART_NAME --version $CHART_VERSION
 ```
 
-# The plan for this repository:
+The plan for this repository:
 ---
-1- to add release pipeline to deploy to Kubernetes Cluster
+1- to add release pipeline to deploy to Kubernetes Cluster.
+
 2- to use Jenkins shared library to reduce the repeated code between the microservices.
 
 
